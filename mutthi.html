@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive E-Mutthi</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+    <link rel="stylesheet" href="mstyle.css" />
+</head>
+<body>
+
+  <header>
+    <img src="./images/modi-removebg-preview.png" style="height: 170px;" />
+    <section style="padding-left: 300px;">
+    <h1>E-MUTTHI PORTAL</h1>
+    <h3>aprooved by central govt of India</h3>
+    </section>
+    <img src="./images/notary_stamp-removebg-preview.png" style="height: 100px;padding-left: 300px;" />
+  </header>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+  <script>
+    let scene, camera, renderer;
+    let imageMesh;
+    let strokeCount = 0;
+    let isDragging = false;
+    let lastTime = Date.now();
+    const drops = [];
+
+    init();
+    animate();
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xfdf0f0); // light pink background
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      camera.position.z = 10;
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(10, 10, 10).normalize();
+      scene.add(light);
+
+      // Load your custom image
+      const loader = new THREE.TextureLoader();
+      loader.load('./images/ick-removebg-preview.png', function(texture) {
+        const geometry = new THREE.PlaneGeometry(5, 6); // adjust size as needed
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        imageMesh = new THREE.Mesh(geometry, material);
+        scene.add(imageMesh);
+      });
+
+      window.addEventListener('mousedown', () => isDragging = true);
+      window.addEventListener('mouseup', () => isDragging = false);
+      window.addEventListener('mousemove', onMouseMove);
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    function onMouseMove(e) {
+      if (isDragging && imageMesh) {
+        strokeCount++;
+
+        const now = Date.now();
+        if (strokeCount > 30 || (now - lastTime) > 3000) {
+          releaseLiquid();
+          strokeCount = 0;
+          lastTime = now;
+        }
+      }
+    }
+
+    function releaseLiquid() {
+      for (let i = 0; i < 20; i++) {
+        const geometry = new THREE.SphereGeometry(0.1, 8, 8);
+        const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const drop = new THREE.Mesh(geometry, material);
+        drop.position.set(0, -2, 0); // beneath the image
+        drop.velocity = Math.random() * -0.1 - 0.05;
+        scene.add(drop);
+        drops.push(drop);
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      for (let i = drops.length - 1; i >= 0; i--) {
+        drops[i].position.y += drops[i].velocity;
+        drops[i].velocity -= 0.002;
+        if (drops[i].position.y < -10) {
+          scene.remove(drops[i]);
+          drops.splice(i, 1);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+  </script>
+  <footer>
+    <h3>Promissory Note<br>
+        I, Yashdeep Singh Saggu, hereby solemnly promise to deliver unto Mr. Priyanshu Garg a total of 30 strokes,
+        which collectively constitute one full mutthi, in accordance with the Masturbation for All Act, 2025, 
+        passed under the esteemed leadership of the Honourable Prime Minister, Mr. Nanendar Modi.
+        This obligation shall be fulfilled in good faith, without delay, hesitation, or premature conclusion.<br>
+        Signed,<br>
+        Yashdeep Singh Saggu
+    </h3>
+  </footer>
+</body>
+</html>
